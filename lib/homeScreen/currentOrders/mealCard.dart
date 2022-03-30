@@ -30,6 +30,8 @@ class mealCard extends StatelessWidget{
             children: [
               Text(mealModel.mealNameAr, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),),
               Text(mealModel.mealDescriptionAr, style: GoogleFonts.almarai(fontSize: 14, fontWeight: FontWeight.w300, height: 1.5),),
+              Text(mealModel.option?.nameAr??' ', style: GoogleFonts.almarai(fontSize: 14, fontWeight: FontWeight.w300, height: 1.5),),
+              Text(mealModel.note, style: GoogleFonts.almarai(fontSize: 14, fontWeight: FontWeight.w300, height: 1.5),),
             ],
           ), ),
           Text(mealModel.number.toString()+' x ', style: const TextStyle(color: Colors.grey),)
