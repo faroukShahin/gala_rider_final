@@ -1,6 +1,5 @@
 
-
-import 'coupon_model.dart';
+import 'CouponModel.dart';
 import 'meal_model.dart';
 
 class OrderModel {
@@ -12,11 +11,12 @@ class OrderModel {
   bool completed;
   bool declined;
   String? declinedReasons;
-
+  double commission;
+  double deliveryCommission;
   final bool paid;
 
   final String restId;
-  String? userId;
+  final String userId;
   final String userName;
   final String userPhone;
   final List<MealModel> meals;
@@ -35,41 +35,38 @@ class OrderModel {
   final String? couponCode;
   final CouponModel? coupon;
 
-  String restNameAr;
-  String restNameEn;
-  String restCover;
-  int deliveryTime;
+  double totalCost;
+  double couponValue;
 
-  OrderModel({
-    required this.id,
-    required this.restId,
-    required this.userPhone,
-    required this.meals,
-    required this.orderTime,
-    required this.userName,
-    this.userId,
-    this.userAddress,
-    this.userLatitude,
-    this.userLongitude,
-    this.accepted = false,
-    this.cooked = false,
-    this.picking = false,
-    this.inTheWay = false,
-    this.completed = false,
-    this.paid = false,
-    this.declined = false,
-    this.declinedReasons,
-    required this.delivery,
-    this.deliveryId,
-    required this.orderNumber,
-    required this.deliveryCost,
-    required this.restNameAr,
-    required this.restNameEn,
-    required this.restCover,
-    required this.deliveryTime,
-    this.couponCode,
-    this.coupon,
-  });
+  OrderModel(
+      {required this.id,
+        required this.restId,
+        required this.userPhone,
+        required this.meals,
+        required this.orderTime,
+        required this.userName,
+        required this.userId,
+        this.userAddress,
+        this.userLatitude,
+        this.userLongitude,
+        this.accepted = false,
+        this.cooked = false,
+        this.picking = false,
+        this.inTheWay = false,
+        this.completed = false,
+        this.paid = false,
+        this.declined = false,
+        this.declinedReasons,
+        required this.delivery,
+        required this.deliveryId,
+        required this.orderNumber,
+        required this.deliveryCost,
+        this.couponCode,
+        this.coupon,
+        required this.commission,
+        required this.deliveryCommission,
+        required this.totalCost,
+        this.couponValue = 0});
 
   Map<String, dynamic> toMap() {
     return {
@@ -90,52 +87,76 @@ class OrderModel {
       'completed': completed,
       'paid': paid,
       'declined': declined,
+      'commission': commission,
+      'deliveryCommission': deliveryCommission,
       'declinedReasons': declinedReasons,
       'deliveryCost': deliveryCost,
       'deliveryId': deliveryId ?? 0,
       'orderNumber': orderNumber,
       'delivery': delivery,
       'couponCode': couponCode ?? '',
-      'restNameAr': restNameAr,
-      'restNameEn': restNameEn,
-      'restCover': restCover,
-      'deliveryTime': deliveryTime,
+      'coupon': coupon?.toMap(),
     };
   }
 
   factory OrderModel.fromMap(Map<String, dynamic> map) {
-
     return OrderModel(
-      id: map['_id'],
-      userName: map['userName'],
-      restId: map['restId'],
-      userId: map['userId'],
-      userPhone: map['userPhone'],
-      userAddress: map['userAddress'],
-      userLatitude: double.parse(map['userLatitude'].toString()),
-      userLongitude: double.parse(map['userLongitude'].toString()),
-      meals: (map['meals'] as List).map((e) => MealModel.fromMap(e)).toList(),
-      orderTime:
-      DateTime.fromMillisecondsSinceEpoch(map['orderTime'], isUtc: true)
-          .toLocal(),
-      accepted: map['accepted'],
-      cooked: map['cooked'],
-      picking: map['picking'],
-      inTheWay: map['inTheWay'],
-      completed: map['completed'],
-      paid: map['paid'],
-      declined: map['declined'],
-      declinedReasons: map['declinedReasons'],
-      deliveryCost: double.parse(map['deliveryCost'].toString()),
-      deliveryId: map['deliveryId'],
-      orderNumber: map['orderNumber'],
-      delivery: map['delivery'],
-      couponCode: map['couponCode'],
-      coupon: map['coupon'] != null ? CouponModel.fromMap(map['coupon']) : null,
-      restNameAr: map['restNameAr'],
-      restNameEn: map['restNameEn'],
-      restCover: map['restCover'],
-      deliveryTime: map['deliveryTime'],
-    );
+        id: map['_id'],
+        userName: map['userName'],
+        restId: map['restId'],
+        userId: map['userId'],
+        userPhone: map['userPhone'],
+        userAddress: map['userAddress'],
+        userLatitude: double.parse(map['userLatitude'].toString()),
+        userLongitude: double.parse(map['userLongitude'].toString()),
+        meals: (map['meals'] as List).map((e) => MealModel.fromMap(e)).toList(),
+        orderTime:
+        DateTime.fromMillisecondsSinceEpoch(map['orderTime'], isUtc: true)
+            .toLocal(),
+        accepted: map['accepted'],
+        cooked: map['cooked'],
+        picking: map['picking'],
+        inTheWay: map['inTheWay'],
+        completed: map['completed'],
+        paid: map['paid'],
+        declined: map['declined'],
+        declinedReasons: map['declinedReasons'],
+        deliveryCost: double.parse(map['deliveryCost'].toString()),
+        deliveryId: map['deliveryId'],
+        orderNumber: map['orderNumber'],
+        delivery: map['delivery'],
+        couponCode: map['couponCode'],
+        commission: double.tryParse(map['commission'].toString()) ?? 0,
+        deliveryCommission:
+        double.tryParse(map['deliveryCommission'].toString()) ?? 0,
+        coupon:
+        map['coupon'] != null ? CouponModel.fromMap(map['coupon']) : null,
+        totalCost: 0);
+  }
+
+  static void calcOrderCost(OrderModel order) {
+    for (final meal in order.meals) {
+      order.totalCost += meal.cost  * meal.number;
+    }
+    if (order.coupon != null) {
+      if (order.coupon!.isPercentage == true) {
+        final discountValue = (order.coupon!.value / 100) * order.totalCost;
+        final discount = (discountValue <= order.coupon!.biggestDiscount
+            ? discountValue
+            : order.coupon!.biggestDiscount)
+            .toDouble();
+        order.totalCost -= discount;
+        order.couponValue = discount;
+      } else {
+        final discountValue = order.totalCost - order.coupon!.value;
+
+        final discount = (discountValue <= order.coupon!.biggestDiscount
+            ? discountValue
+            : order.coupon!.biggestDiscount)
+            .toDouble();
+        order.totalCost -= discount;
+        order.couponValue = discount;
+      }
+    }
   }
 }

@@ -22,6 +22,7 @@ class _myWalletState extends State<myWallet> {
     super.initState();
     for(int i=0; i<controller.previousOrders.length;i++){
       totalEarning+=controller.previousOrders[i].deliveryCost;
+      print(totalEarning);
     }
   }
   @override
@@ -63,7 +64,7 @@ class _myWalletState extends State<myWallet> {
                             textAlign: TextAlign.start,
                           ),
                           //TODO the total   of paid plus recieved
-                          Text('${controller.delivery?.paid??0 - totalEarning} شيكل',
+                          Text('${(controller.delivery!.paid - totalEarning)} شيكل',
                             style: GoogleFonts.almarai(
                                 fontSize: 25,
                                 height: 3,
@@ -80,8 +81,8 @@ class _myWalletState extends State<myWallet> {
                         backgroundColor: mainColor,
                         child: IconButton(
                           onPressed: (){
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context)=>cards()));
+                            // Navigator.push(context,
+                            //     MaterialPageRoute(builder: (context)=>cards()));
                           },
                           icon: const Icon(FontAwesomeIcons.ccVisa,
                             color: Colors.white,

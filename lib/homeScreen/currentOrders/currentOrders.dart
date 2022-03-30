@@ -37,11 +37,11 @@ class currentOrders extends StatelessWidget {
               builder: (BuildContext context, value, Widget? child) {
                 return Obx(
                   (){
-                    final orders= controller.orders.where((element) => calculateDistance(controller.latitude, controller.longitude, element.userLatitude, element.userLongitude)<2.1);
+                    final orders= controller.orders.where((element) => calculateDistance(controller.latitude, controller.longitude, element.userLatitude, element.userLongitude)<2000).toList();
                     return ListView.separated(
-                      itemCount: controller.orders.length,
+                      itemCount: orders.length,
                       itemBuilder: (context, index) {
-                        final order = controller.orders[index];
+                        final order = orders[index];
 
                         return currentOrderCard(
                           orderModel: order,

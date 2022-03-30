@@ -64,15 +64,16 @@ class _addressCardState extends State<addressCard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
               child: Column(
+
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.location_pin),
                       const SizedBox(width: 5,),
-                      Text(widget.address, style:  GoogleFonts.cairo(fontWeight: FontWeight.w400, fontSize: 16),textAlign: TextAlign.right,),
-                      Expanded(child: Container()),
+                      Expanded(child: Text(widget.address, style:  GoogleFonts.cairo(fontWeight: FontWeight.w400, fontSize: 12),textAlign: TextAlign.right,)),
                     ],
                   ),
                   Text(detailed_address, style:  GoogleFonts.cairo(color: Colors.black45),textAlign: TextAlign.right),
