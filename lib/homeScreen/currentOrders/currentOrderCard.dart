@@ -6,6 +6,7 @@ import 'package:gala_rider/main_controller.dart';
 import 'package:gala_rider/model/order_model.dart';
 import 'package:gala_rider/model/restaurant_model.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'addressCard.dart';
@@ -38,6 +39,7 @@ class _currentOrderCardState extends State<currentOrderCard> {
       });
     });
   }
+  final controller =Get.find<MainController>();
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -91,8 +93,7 @@ class _currentOrderCardState extends State<currentOrderCard> {
                   ),
                 ),
                 onTap: () {
-                  //TODO remove from delivery here
-                  setState(() {});
+                  controller.orders.remove(widget.orderModel);
                 },
               ),
             ),

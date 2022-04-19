@@ -1,6 +1,7 @@
 //ignore_for_file: file_names
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gala_rider/calculations.dart';
 import 'package:gala_rider/main.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,10 +21,6 @@ class _myWalletState extends State<myWallet> {
   @override
   void initState() {
     super.initState();
-    for(int i=0; i<controller.previousOrders.length;i++){
-      totalEarning+=controller.previousOrders[i].deliveryCost;
-      print(totalEarning);
-    }
   }
   @override
   Widget build(BuildContext context) {
@@ -64,7 +61,7 @@ class _myWalletState extends State<myWallet> {
                             textAlign: TextAlign.start,
                           ),
                           //TODO the total   of paid plus recieved
-                          Text('${(controller.delivery!.paid - totalEarning)} شيكل',
+                          Text('${(controller.delivery!.paid - appTotalNeeds())} شيكل',
                             style: GoogleFonts.almarai(
                                 fontSize: 25,
                                 height: 3,
@@ -94,23 +91,36 @@ class _myWalletState extends State<myWallet> {
               ),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                child: Row(
+                child: Column(
                   children: [
-                    Expanded(child:
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        //TODO the paid money to the app
-                        Text('${controller.delivery?.paid??0}+ شيكل',
+                        Text('صافي أجرة التوصيل',
                           style: GoogleFonts.almarai(
-                              fontSize: 25,
+                              fontSize: 16,
+                              height: 2,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500
+                          ),
+                          textAlign: TextAlign.start,
+                        ),
+                        Text('${deliveryEarning()}+ شيكل',
+                          style: GoogleFonts.almarai(
+                              fontSize: 20,
                               height: 2,
                               color: Colors.green,
                               fontWeight: FontWeight.bold
                           ),
                           textAlign: TextAlign.start,
                         ),
-                        Text('تم تسليمها',
+                      ],
+                    ),
+                    const Divider(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('تم تسليمها للتطبيق',
                           style: GoogleFonts.almarai(
                               fontSize: 16,
                               height: 2,
@@ -119,23 +129,46 @@ class _myWalletState extends State<myWallet> {
                           ),
                           textAlign: TextAlign.start,
                         ),
+                        Text('${controller.delivery?.paid??0}+ شيكل',
+                          style: GoogleFonts.almarai(
+                              fontSize: 20,
+                              height: 2,
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold
+                          ),
+                          textAlign: TextAlign.start,
+                        ),
                       ],
                     ),
-                    ),
-                    Expanded(child:
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    const Divider(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('${totalEarning*-1} شيكل',
+                        Text('المبالغ المستلمة مع أجرة التوصيل',
                           style: GoogleFonts.almarai(
-                              fontSize: 25,
+                              fontSize: 16,
+                              height: 2,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500
+                          ),
+                          textAlign: TextAlign.start,
+                        ),
+                        Text('${ordersWithDelivery()}+ شيكل',
+                          style: GoogleFonts.almarai(
+                              fontSize: 20,
                               height: 2,
                               color: Colors.red,
                               fontWeight: FontWeight.bold
                           ),
                           textAlign: TextAlign.start,
                         ),
-                        Text('تم استلامها',
+                      ],
+                    ),
+                    const Divider(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('مستحقات التطبيق',
                           style: GoogleFonts.almarai(
                               fontSize: 16,
                               height: 2,
@@ -144,14 +177,23 @@ class _myWalletState extends State<myWallet> {
                           ),
                           textAlign: TextAlign.start,
                         ),
+                        Text('${appRights()}+ شيكل',
+                          style: GoogleFonts.almarai(
+                              fontSize: 20,
+                              height: 2,
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold
+                          ),
+                          textAlign: TextAlign.start,
+                        ),
                       ],
                     ),
-                    ),
+
+
 
                   ],
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Column(
@@ -189,5 +231,37 @@ class _myWalletState extends State<myWallet> {
         ),
       ),
     );
+  }
+  num ordersWithDelivery(){
+    num total=0;
+    final cashPaidOrders = controller.previousOrders.where((element) => element.paid==false);
+    for(var item in cashPaidOrders){
+      total += getOrderTotalCost(item)+item.deliveryCost;
+    }
+    return total;
+  }
+  num deliveryEarning(){
+    num total =0;
+    final cashPaidOrders = controller.previousOrders.where((element) => element.paid==false);
+    for(var item in cashPaidOrders){
+      total +=item.deliveryCost-(item.deliveryCost*(item.deliveryCommission/100));
+    }
+    return total;
+  }
+  num appRights(){
+    num total =0;
+    final cashPaidOrders = controller.previousOrders.where((element) => element.paid==false);
+    for(var item in cashPaidOrders){
+      total +=(item.deliveryCost*(item.deliveryCommission/100));
+    }
+    return total;
+  }
+  num appTotalNeeds(){
+    num total=0;
+    final cashPaidOrders = controller.previousOrders.where((element) => element.paid==false);
+    for(var item in cashPaidOrders){
+      total += getOrderTotalCost(item)+(item.deliveryCost*(item.deliveryCommission/100));
+    }
+    return total;
   }
 }

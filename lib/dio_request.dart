@@ -5,9 +5,10 @@ class DioRequest {
   // static String weSocketUrl = 'ws://192.168.1.6:4444';
   // static String apiUrl = 'http://192.168.1.6:4444/api';
 
-  static String apiUrl = 'http://gala.ajory.online:4444/api';
-  static String weSocketUrl = 'ws://gala.ajory.online:4444/';
-  
+  static String apiUrl = 'http://141.136.36.60:4444/api';
+  static String weSocketUrl = 'ws://141.136.36.60:4444/';
+
+
   // static String apiUrl = 'http://talabat22.herokuapp.com/api';
   // static String weSocketUrl = 'ws://talabat22.herokuapp.com/';
   static String apiKey =

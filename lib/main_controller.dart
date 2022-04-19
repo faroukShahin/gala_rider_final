@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:gala_rider/dio_request.dart';
 import 'package:gala_rider/homeScreen/currentOrders/currentOrderCard.dart';
 import 'package:gala_rider/homeScreen/login_screen.dart';
@@ -11,6 +12,7 @@ import 'package:gala_rider/model/restaurant_model.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:location/location.dart' as loc;
@@ -27,8 +29,17 @@ class MainController extends GetxController {
   final _restaurants = RxList<RestaurantModel>();
   final _latitude = RxDouble(0.0);
   final _longitude = RxDouble(0.0);
-
   final _currentOrder = Rxn<OrderModel>();
+//maps
+  final mapMarker= <Marker>[].obs;
+  final polylines = <PolylineId, Polyline>{}.obs;
+  PolylinePoints polylinePoints = PolylinePoints();
+  final polylineList = <LatLng>[].obs;
+//maps after picking
+  final mapMarker2= <Marker>[].obs;
+  final polylines2 = <PolylineId, Polyline>{}.obs;
+  PolylinePoints polylinePoints2 = PolylinePoints();
+  final polylineList2 = <LatLng>[].obs;
 
   DeliveryModel? get delivery => _delivery.value;
 
@@ -125,6 +136,7 @@ class MainController extends GetxController {
   void _get_location() {
     loc.Location location = loc.Location();
     location.onLocationChanged.listen((event) {
+      sendLocationWithLocationPackage(event);
       _latitude.value = event.latitude!;
       _longitude.value = event.longitude!;
     });
@@ -138,7 +150,88 @@ class MainController extends GetxController {
     _sendDataToServer('new_location',
         {'late': position.latitude, 'long': position.longitude});
   }
+  sendLocationWithLocationPackage(loc.LocationData event){
+    print('sent');
+    _sendDataToServer('new_location',
+        {'late': event.latitude, 'long': event.longitude});
+  }
+  addMarker()async{
 
+    try{
+      if(currentOrder!=null){
+
+       if(!currentOrder!.inTheWay){
+         print('there');
+         final restaurantInfo = restaurants
+             .firstWhere((e) => e.id == currentOrder!.restId);
+         mapMarker.add(Marker(markerId: MarkerId('driver'),
+           position: LatLng(latitude, longitude),
+         ));
+         mapMarker.add(Marker(markerId: MarkerId('restaurant'),
+           position:LatLng(restaurantInfo.latitude, restaurantInfo.longitude),
+         ));
+         PolylinePoints polylinePoints = PolylinePoints();
+         PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+           'AIzaSyDiTW5YZ_Tq-BwzOu1HIIAR_qh8yXmJnm8',
+           PointLatLng(
+             latitude,
+             longitude,
+           ),
+           PointLatLng(
+               restaurantInfo.latitude, restaurantInfo.longitude
+           ),
+
+         );
+         result.points.forEach((element) {
+           polylineList.add(LatLng(element.latitude, element.longitude));
+         });
+         final polylineId = const PolylineId('1');
+         final Polyline polyline = Polyline(
+           polylineId: polylineId,
+           consumeTapEvents: true,
+           color: Colors.greenAccent,
+           width: 5,
+           points: polylineList,
+         );
+         polylines[polylineId] = polyline;
+       }else{
+         print('here');
+         mapMarker2.add(Marker(markerId: MarkerId('driver'),
+           position: LatLng(latitude, longitude),
+         ));
+         mapMarker2.add(Marker(markerId: MarkerId('restaurant'),
+           position:LatLng(
+               currentOrder!.userLatitude!, currentOrder!.userLongitude!
+           ),
+         ));
+         PolylinePoints polylinePoints = PolylinePoints();
+         PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+           'AIzaSyDiTW5YZ_Tq-BwzOu1HIIAR_qh8yXmJnm8',
+           PointLatLng(
+             latitude,
+             longitude,
+           ),
+           PointLatLng(
+               currentOrder!.userLatitude!, currentOrder!.userLongitude!
+           ),
+
+         );
+         result.points.forEach((element) {
+           polylineList2.add(LatLng(element.latitude, element.longitude));
+         });
+         final polylineId =  PolylineId('${currentOrder!.id}');
+         final Polyline polyline = Polyline(
+           polylineId: polylineId,
+           consumeTapEvents: true,
+           color: Colors.greenAccent,
+           width: 5,
+           points: polylineList2,
+         );
+         polylines2[polylineId] = polyline;
+       }
+      }
+    }catch(e){}
+  }
   Future<bool> _isLocationEnable() async {
     bool isLocationEnable = false;
 

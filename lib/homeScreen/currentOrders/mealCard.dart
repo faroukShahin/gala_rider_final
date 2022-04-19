@@ -12,7 +12,6 @@ class mealCard extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 15),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

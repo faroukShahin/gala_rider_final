@@ -1,5 +1,6 @@
 //ignore_for_file: file_names
 import 'package:flutter/material.dart';
+import 'package:gala_rider/calculations.dart';
 import 'package:gala_rider/homeScreen/currentOrders/mealCard.dart';
 import 'package:gala_rider/main.dart';
 import 'package:gala_rider/main_controller.dart';
@@ -212,20 +213,36 @@ class _orderReceivedState extends State<orderReceived> {
                 ),
                 Expanded(
                   child: Text(
-                    widget.orderModel.userPhone,
+                    'قيمة الفاتورة',
                     style: GoogleFonts.almarai(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                        fontSize: 16, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.start,
                   ),
                 ),
-                Text(
-                  '${total_cost} شيكل',
-                  style: GoogleFonts.almarai(color: Colors.grey),
+                Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: mainColor,
+                        borderRadius: BorderRadius.circular(20)
+                      ),
+                      child: Text(
+                        '${getOrderTotalCost(widget.orderModel)+widget.orderModel.deliveryCost} شيكل',
+                        style: GoogleFonts.almarai(color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 5,),
+                    Text(
+                      ' الدفع عند التسليم',
+                      style: GoogleFonts.almarai(color: Colors.red, fontSize: 12),
+                    )
+                  ],
                 ),
-                Text(
-                  ' الدفع عند التسليم',
-                  style: GoogleFonts.almarai(color: Colors.red, fontSize: 16),
-                )
+
               ],
             ),
             Container(

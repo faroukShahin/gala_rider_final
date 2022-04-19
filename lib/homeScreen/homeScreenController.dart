@@ -39,28 +39,19 @@ class HomeScreenController extends StatelessWidget {
               backgroundColor: Colors.white,
               elevation: 0,
               iconTheme: const IconThemeData(color: Colors.black),
-              title: Text(
-                'Gala',
-                style: GoogleFonts.almarai(fontSize: 16, color: Colors.black),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Gala',
+                    style: GoogleFonts.almarai(fontSize: 16, color: Colors.black),
+                  ),
+                  Text(controller.delivery?.name??'',
+                    style: GoogleFonts.almarai(fontSize: 16, color: Colors.black),
+                  )
+                ],
               ),
               actions: [
-                Obx(() => Center(
-                      child: TextButton(
-                        onPressed: () {
-                          if (!controller.isConnected) {
-                            controller.connectWithWebSocket();
-                          }
-                        },
-                        child: Text(
-                          controller.isConnected ? 'متصل' : 'غير متصل',
-                          style: TextStyle(
-                              fontSize: 20,
-                              color: controller.isConnected
-                                  ? Colors.green
-                                  : Colors.red),
-                        ),
-                      ),
-                    )),
                 SizedBox(
                   width: 30,
                 ),

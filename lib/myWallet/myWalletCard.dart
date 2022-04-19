@@ -1,5 +1,6 @@
 //ignore_for_file: file_names
 import 'package:flutter/material.dart';
+import 'package:gala_rider/calculations.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../model/order_model.dart';
@@ -53,7 +54,13 @@ class _myWalletCardState extends State<myWalletCard> {
 
             ],
           )),
-          Text('-${widget.orderModel.deliveryCost}''شيكل', style: GoogleFonts.almarai(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.red),)
+          Column(
+            children: [
+              Text('-${widget.orderModel.deliveryCost}''شيكل', style: GoogleFonts.almarai(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.red),),
+              const SizedBox(height: 10,),
+              Text('${getOrderTotalCost(widget.orderModel)}''شيكل', style: GoogleFonts.almarai(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey),),
+            ],
+          )
         ],
       ),
     );
