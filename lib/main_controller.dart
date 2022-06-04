@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -17,11 +18,9 @@ import 'package:hive/hive.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:location/location.dart' as loc;
 
-import 'homeScreen/currentOrders/currentOrders.dart';
-
 class MainController extends GetxController {
   final index = Rx(0);
-  final _totalEarning=RxDouble(0.0);
+  final _totalEarning = RxDouble(0.0);
   final _delivery = Rxn<DeliveryModel>();
   final _isConnected = Rx(false);
   final _orders = RxList<OrderModel>();
@@ -30,13 +29,15 @@ class MainController extends GetxController {
   final _latitude = RxDouble(0.0);
   final _longitude = RxDouble(0.0);
   final _currentOrder = Rxn<OrderModel>();
+
 //maps
-  final mapMarker= <Marker>[].obs;
+  final mapMarker = <Marker>[].obs;
   final polylines = <PolylineId, Polyline>{}.obs;
   PolylinePoints polylinePoints = PolylinePoints();
   final polylineList = <LatLng>[].obs;
+
 //maps after picking
-  final mapMarker2= <Marker>[].obs;
+  final mapMarker2 = <Marker>[].obs;
   final polylines2 = <PolylineId, Polyline>{}.obs;
   PolylinePoints polylinePoints2 = PolylinePoints();
   final polylineList2 = <LatLng>[].obs;
@@ -59,11 +60,13 @@ class MainController extends GetxController {
 
   String? _token;
 
-  double get totalEarning =>_totalEarning.value;
+  double get totalEarning => _totalEarning.value;
 
   double get latitude => _latitude.value;
 
   double get longitude => _longitude.value;
+
+  final List<String> rejectedOrders = [];
 
   @override
   void onInit() {
@@ -74,6 +77,7 @@ class MainController extends GetxController {
       _startLocationTracking();
       _get_location();
       connectWithWebSocket();
+      FirebaseMessaging.instance.subscribeToTopic('deliverers');
     } else {
       Get.offAll(LoginScreen());
     }
@@ -150,88 +154,94 @@ class MainController extends GetxController {
     _sendDataToServer('new_location',
         {'late': position.latitude, 'long': position.longitude});
   }
-  sendLocationWithLocationPackage(loc.LocationData event){
+
+  sendLocationWithLocationPackage(loc.LocationData event) {
     print('sent');
-    _sendDataToServer('new_location',
-        {'late': event.latitude, 'long': event.longitude});
+    _sendDataToServer(
+        'new_location', {'late': event.latitude, 'long': event.longitude});
   }
-  addMarker()async{
 
-    try{
-      if(currentOrder!=null){
-
-       if(!currentOrder!.inTheWay){
-         print('there');
-         final restaurantInfo = restaurants
-             .firstWhere((e) => e.id == currentOrder!.restId);
-         mapMarker.add(Marker(markerId: MarkerId('driver'),
-           position: LatLng(latitude, longitude),
-         ));
-         mapMarker.add(Marker(markerId: MarkerId('restaurant'),
-           position:LatLng(restaurantInfo.latitude, restaurantInfo.longitude),
-         ));
-         PolylinePoints polylinePoints = PolylinePoints();
-         PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-           'AIzaSyDiTW5YZ_Tq-BwzOu1HIIAR_qh8yXmJnm8',
-           PointLatLng(
-             latitude,
-             longitude,
-           ),
-           PointLatLng(
-               restaurantInfo.latitude, restaurantInfo.longitude
-           ),
-
-         );
-         result.points.forEach((element) {
-           polylineList.add(LatLng(element.latitude, element.longitude));
-         });
-         final polylineId = const PolylineId('1');
-         final Polyline polyline = Polyline(
-           polylineId: polylineId,
-           consumeTapEvents: true,
-           color: Colors.greenAccent,
-           width: 5,
-           points: polylineList,
-         );
-         polylines[polylineId] = polyline;
-       }else{
-         print('here');
-         mapMarker2.add(Marker(markerId: MarkerId('driver'),
-           position: LatLng(latitude, longitude),
-         ));
-         mapMarker2.add(Marker(markerId: MarkerId('restaurant'),
-           position:LatLng(
-               currentOrder!.userLatitude!, currentOrder!.userLongitude!
-           ),
-         ));
-         PolylinePoints polylinePoints = PolylinePoints();
-         PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-           'AIzaSyDiTW5YZ_Tq-BwzOu1HIIAR_qh8yXmJnm8',
-           PointLatLng(
-             latitude,
-             longitude,
-           ),
-           PointLatLng(
-               currentOrder!.userLatitude!, currentOrder!.userLongitude!
-           ),
-
-         );
-         result.points.forEach((element) {
-           polylineList2.add(LatLng(element.latitude, element.longitude));
-         });
-         final polylineId =  PolylineId('${currentOrder!.id}');
-         final Polyline polyline = Polyline(
-           polylineId: polylineId,
-           consumeTapEvents: true,
-           color: Colors.greenAccent,
-           width: 5,
-           points: polylineList2,
-         );
-         polylines2[polylineId] = polyline;
-       }
+  addMarker() async {
+    try {
+      if (currentOrder != null) {
+        if (!currentOrder!.inTheWay) {
+          print('there');
+          final restaurantInfo =
+              restaurants.firstWhere((e) => e.id == currentOrder!.restId);
+          mapMarker.add(Marker(
+            markerId: MarkerId('driver'),
+            position: LatLng(latitude, longitude),
+          ));
+          mapMarker.add(Marker(
+            markerId: MarkerId('restaurant'),
+            position: LatLng(restaurantInfo.latitude, restaurantInfo.longitude),
+          ));
+          PolylinePoints polylinePoints = PolylinePoints();
+          PolylineResult result =
+              await polylinePoints.getRouteBetweenCoordinates(
+            'AIzaSyDiTW5YZ_Tq-BwzOu1HIIAR_qh8yXmJnm8',
+            PointLatLng(
+              latitude,
+              longitude,
+            ),
+            PointLatLng(restaurantInfo.latitude, restaurantInfo.longitude),
+          );
+          result.points.forEach((element) {
+            polylineList.add(LatLng(element.latitude, element.longitude));
+          });
+          final polylineId = const PolylineId('1');
+          final Polyline polyline = Polyline(
+            polylineId: polylineId,
+            consumeTapEvents: true,
+            color: Colors.greenAccent,
+            width: 5,
+            points: polylineList,
+          );
+          polylines[polylineId] = polyline;
+        } else {
+          print('here');
+          mapMarker2.add(Marker(
+            markerId: MarkerId('driver'),
+            position: LatLng(latitude, longitude),
+          ));
+          mapMarker2.add(Marker(
+            markerId: MarkerId('restaurant'),
+            position: LatLng(
+                currentOrder!.userLatitude!, currentOrder!.userLongitude!),
+          ));
+          PolylinePoints polylinePoints = PolylinePoints();
+          PolylineResult result =
+              await polylinePoints.getRouteBetweenCoordinates(
+            'AIzaSyDiTW5YZ_Tq-BwzOu1HIIAR_qh8yXmJnm8',
+            PointLatLng(
+              latitude,
+              longitude,
+            ),
+            PointLatLng(
+                currentOrder!.userLatitude!, currentOrder!.userLongitude!),
+          );
+          result.points.forEach((element) {
+            polylineList2.add(LatLng(element.latitude, element.longitude));
+          });
+          final polylineId = PolylineId('${currentOrder!.id}');
+          final Polyline polyline = Polyline(
+            polylineId: polylineId,
+            consumeTapEvents: true,
+            color: Colors.greenAccent,
+            width: 5,
+            points: polylineList2,
+          );
+          polylines2[polylineId] = polyline;
+        }
       }
-    }catch(e){}
+    } catch (e) {}
   }
+
+  void onRejectOrder(OrderModel orderModel) {
+    _orders.remove(orderModel);
+    rejectedOrders.add(orderModel.id);
+  }
+
   Future<bool> _isLocationEnable() async {
     bool isLocationEnable = false;
 
@@ -321,7 +331,6 @@ class MainController extends GetxController {
   }
 
   void _onServerData(dynamic data) {
-
     try {
       if (data == 'connected') {
         _isConnected.value = true;
@@ -355,7 +364,10 @@ class MainController extends GetxController {
             break;
 
           case 'new_order':
-            _orders.add(OrderModel.fromMap(json['data']));
+            final order = OrderModel.fromMap(json['data']);
+            if (rejectedOrders.firstWhereOrNull((e) => e == order.id) == null) {
+              _orders.add(order);
+            }
 
             break;
           case 'request_order':
@@ -365,12 +377,19 @@ class MainController extends GetxController {
 
             Get.defaultDialog(
               title: 'طلب جديد',
+              onWillPop: () => Future(() => false),
+              barrierDismissible: false,
               middleText:
                   'يوجد طلب جديد من مطعم ${restaurant.nameAr} \n هل تريد عرض تفاصيل الطلب؟',
               textConfirm: 'نعم',
               textCancel: 'لا',
               confirmTextColor: Colors.white,
-              onCancel: Get.back,
+              onCancel: () {
+                _sendDataToServer('request_order_rejected', {
+                  'rest': restaurant.id,
+                  'order': order.orderNumber,
+                });
+              },
               onConfirm: () {
                 Get.back();
                 Get.dialog(
@@ -383,10 +402,17 @@ class MainController extends GetxController {
                           orderModel: order,
                           onAcceptClick: () => acceptOrder(order),
                           restaurant: restaurant,
+                          onReject: () {
+                            _sendDataToServer('request_order_rejected', {
+                              'rest': restaurant.id,
+                              'order': order.orderNumber,
+                            });
+                          },
                         ),
                       ),
                     ),
                   ),
+                  barrierDismissible: false,
                 );
               },
             );
@@ -454,7 +480,6 @@ class MainController extends GetxController {
             break;
 
           case 'rest_cancel_order':
-
             if (currentOrder != null && currentOrder!.id == json['data']) {
               _currentOrder.value = null;
               Get.defaultDialog(
@@ -467,9 +492,7 @@ class MainController extends GetxController {
             break;
         }
       }
-    } catch (e) {
-
-    }
+    } catch (e) {}
   }
 
   void call_number(phone) async {

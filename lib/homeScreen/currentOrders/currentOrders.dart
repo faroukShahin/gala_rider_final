@@ -35,32 +35,39 @@ class currentOrders extends StatelessWidget {
             child: ValueListenableBuilder(
               valueListenable: orderStatus,
               builder: (BuildContext context, value, Widget? child) {
-                return Obx(
-                  (){
-                    final orders= controller.orders.where((element) => calculateDistance(controller.latitude, controller.longitude, element.userLatitude, element.userLongitude)<2000).toList();
-                    return ListView.separated(
-                      itemCount: orders.length,
-                      itemBuilder: (context, index) {
-                        final order = orders[index];
+                return Obx(() {
+                  final orders = controller.orders
+                      .where((element) =>
+                          calculateDistance(
+                              controller.latitude,
+                              controller.longitude,
+                              element.userLatitude,
+                              element.userLongitude) <
+                          2000)
+                      .toList();
+                  return ListView.separated(
+                    itemCount: orders.length,
+                    itemBuilder: (context, index) {
+                      final order = orders[index];
 
-                        return currentOrderCard(
-                          orderModel: order,
-                          onAcceptClick: () => _showAcceptOrderDialog(order),
-                          restaurant: controller.restaurants
-                              .firstWhere((e) => e.id == order.restId),
-                        );
-                      },
-                      separatorBuilder: (BuildContext context, int index) {
-                        return Container(
-                          color: Colors.black,
-                          height: .5,
-                          width: double.infinity,
-                          margin: const EdgeInsets.symmetric(vertical: 15),
-                        );
-                      },
-                    );
-                  }
-                );
+                      return currentOrderCard(
+                        orderModel: order,
+                        onAcceptClick: () => _showAcceptOrderDialog(order),
+                        restaurant: controller.restaurants
+                            .firstWhere((e) => e.id == order.restId),
+                        onReject: () => controller.onRejectOrder(order),
+                      );
+                    },
+                    separatorBuilder: (BuildContext context, int index) {
+                      return Container(
+                        color: Colors.black,
+                        height: .5,
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(vertical: 15),
+                      );
+                    },
+                  );
+                });
               },
             ),
           )
@@ -85,11 +92,12 @@ class currentOrders extends StatelessWidget {
     );
   }
 }
-double calculateDistance(lat1, lon1, lat2, lon2){
+
+double calculateDistance(lat1, lon1, lat2, lon2) {
   var p = 0.017453292519943295;
   var c = cos;
-  var a = 0.5 - c((lat2 - lat1) * p)/2 +
-      c(lat1 * p) * c(lat2 * p) *
-          (1 - c((lon2 - lon1) * p))/2;
+  var a = 0.5 -
+      c((lat2 - lat1) * p) / 2 +
+      c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
   return 12742 * asin(sqrt(a));
 }

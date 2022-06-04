@@ -15,13 +15,15 @@ class currentOrderCard extends StatefulWidget {
   final OrderModel orderModel;
   final VoidCallback onAcceptClick;
   final RestaurantModel restaurant;
+  final VoidCallback onReject;
 
-  const currentOrderCard(
-      {Key? key,
-      required this.orderModel,
-      required this.onAcceptClick,
-      required this.restaurant})
-      : super(key: key);
+  const currentOrderCard({
+    Key? key,
+    required this.orderModel,
+    required this.onAcceptClick,
+    required this.onReject,
+    required this.restaurant,
+  }) : super(key: key);
 
   @override
   State<currentOrderCard> createState() => _currentOrderCardState();
@@ -29,17 +31,23 @@ class currentOrderCard extends StatefulWidget {
 
 class _currentOrderCardState extends State<currentOrderCard> {
   bool detailed = false;
-  String customer_detailed_address='';
+  String customer_detailed_address = '';
+
   @override
   void initState() {
     super.initState();
-    MainController().getPlace(widget.orderModel.userLatitude, widget.orderModel.userLongitude).then((value){
+    MainController()
+        .getPlace(
+            widget.orderModel.userLatitude, widget.orderModel.userLongitude)
+        .then((value) {
       setState(() {
-        customer_detailed_address=value;
+        customer_detailed_address = value;
       });
     });
   }
-  final controller =Get.find<MainController>();
+
+  final controller = Get.find<MainController>();
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -92,9 +100,7 @@ class _currentOrderCardState extends State<currentOrderCard> {
                     style: GoogleFonts.almarai(color: mainColor),
                   ),
                 ),
-                onTap: () {
-                  controller.orders.remove(widget.orderModel);
-                },
+                onTap: widget.onReject,
               ),
             ),
             Visibility(
@@ -167,7 +173,8 @@ class _currentOrderCardState extends State<currentOrderCard> {
                     backgroundColor: mainColor,
                     child: IconButton(
                       onPressed: () {
-                        MainController().call_number(widget.restaurant.phoneNumber);
+                        MainController()
+                            .call_number(widget.restaurant.phoneNumber);
                       },
                       icon: const Icon(
                         Icons.call,
@@ -203,7 +210,12 @@ class _currentOrderCardState extends State<currentOrderCard> {
                             fontSize: 14, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.start,
                       ),
-                      Text(customer_detailed_address, style: GoogleFonts.cairo(fontSize: 14, ),),
+                      Text(
+                        customer_detailed_address,
+                        style: GoogleFonts.cairo(
+                          fontSize: 14,
+                        ),
+                      ),
                     ],
                   )),
                   CircleAvatar(
@@ -211,7 +223,8 @@ class _currentOrderCardState extends State<currentOrderCard> {
                     backgroundColor: mainColor,
                     child: IconButton(
                       onPressed: () {
-                        MainController().call_number(widget.orderModel.userPhone);
+                        MainController()
+                            .call_number(widget.orderModel.userPhone);
                       },
                       icon: const Icon(
                         Icons.call,
@@ -249,5 +262,4 @@ class _currentOrderCardState extends State<currentOrderCard> {
       ],
     );
   }
-
 }
