@@ -21,6 +21,9 @@ class _myWalletState extends State<myWallet> {
   @override
   void initState() {
     super.initState();
+    for(var item in controller.previousOrders){
+      print(item.toMap());
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -210,9 +213,14 @@ class _myWalletState extends State<myWallet> {
                         final order = controller.previousOrders[index];
                         final rest = controller.restaurants
                             .firstWhere((e) => e.id == order.restId);
-                        return myWalletCard(
-                            orderModel: order,
-                          restaurantModel: rest,
+                        return InkWell(
+                          onTap: (){
+                            print(order.toMap());
+                          },
+                          child: myWalletCard(
+                              orderModel: order,
+                            restaurantModel: rest,
+                          ),
                         );
                       },
                       separatorBuilder: (context, index){
@@ -260,6 +268,7 @@ class _myWalletState extends State<myWallet> {
     num total=0;
     final cashPaidOrders = controller.previousOrders.where((element) => element.paid==false);
     for(var item in cashPaidOrders){
+
       total += getOrderTotalCost(item)+(item.deliveryCost*(item.deliveryCommission/100));
     }
     return total;

@@ -322,8 +322,6 @@ class MainController extends GetxController {
 
   void _onServerData(dynamic data) {
 
-
-    print(data);
     try {
       if (data == 'connected') {
         _isConnected.value = true;
@@ -354,7 +352,6 @@ class MainController extends GetxController {
             _previousOrders.value = (json['data'] as List)
                 .map((e) => OrderModel.fromMap(e))
                 .toList();
-
             break;
 
           case 'new_order':
