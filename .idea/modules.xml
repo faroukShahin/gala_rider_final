@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/gala_rider.iml" filepath="$PROJECT_DIR$/gala_rider.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/gala_rider_android.iml" filepath="$PROJECT_DIR$/android/gala_rider_android.iml" />
     </modules>
   </component>
 </project>
